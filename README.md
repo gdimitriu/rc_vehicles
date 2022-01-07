@@ -1,2 +1,2 @@
 # rc_vehicles
-rc vehicles to be used with droid controll center
+rc vehicles to be used with droid control center
