@@ -1,6 +1,6 @@
 /*
  * Radio Controlled car.
- * Copyright 2022 Gabriel Dimitriu
+ * Copyright 2018 Gabriel Dimitriu
  *
  * This is part of rc_vehicles project.
  * Joystick Command emiter.
@@ -34,7 +34,7 @@ long joystick_y;
 long joystick_y_old;
 int joystick_sw;
 uint8_t sendData[BUFFER];
-#define NR_READS 50
+#define NR_READS 40
 #define DEBUG_MODE true
 volatile boolean fullStopFlag = false;
 void setup() {
@@ -79,47 +79,9 @@ void loop() {
   int i;
   int xPower;
   int yPower;
-  for (i = 0; i< NR_READS; i++)
-    readValue += analogRead(JOYSTICK_X_PIN);
-  readValue = readValue/NR_READS;
-  if (labs(readValue - joystick_x) > 2) {
-    joystick_x_old = joystick_x;
-    joystick_x = readValue;
-  }
-  if (labs(joystick_x_old - JOYSTICK_X_ZERO) <= 2 && labs(JOYSTICK_X_ZERO - joystick_x) <=2) {
-    joystick_x_old = joystick_x;
-  }
-  readValue = 0;
-  for (i = 0; i< NR_READS; i++)
-    readValue += analogRead(JOYSTICK_Y_PIN);
-  readValue = readValue/NR_READS;
-  if (labs(readValue - joystick_y) > 2) {
-    joystick_y_old = joystick_y;
-    joystick_y = readValue;
-  }
   //send data
   clearBuffer();
-  if (labs(joystick_x_old - joystick_x) > 2 && labs(joystick_y_old - joystick_y) > 2) {
-    xPower = normalize(JOYSTICK_X_ZERO-joystick_x);
-    yPower = normalize(-joystick_y+JOYSTICK_Y_ZERO);
-#ifdef DEBUG_MODE
-    Serial.print("x="); Serial.print(xPower);Serial.print(":y="); Serial.print(yPower);
-    Serial.print(" orig x=");Serial.print(joystick_x);Serial.print(":");Serial.println(joystick_x);
-#endif    
-    sprintf(sendData,"c%d,%d",xPower,yPower);
-  } else if (labs(joystick_x_old - joystick_x) > 2) {
-    xPower = normalize(JOYSTICK_X_ZERO-joystick_x);
-#ifdef DEBUG_MODE    
-    Serial.print("x="); Serial.print(xPower);Serial.print(":");Serial.println(joystick_x);
-#endif    
-    sprintf(sendData,"x%d",xPower);
-  } else if (labs(joystick_y_old - joystick_y) > 2) {
-    yPower = normalize(-joystick_y+JOYSTICK_Y_ZERO);
-#ifdef DEBUG_MODE
-    Serial.print("y="); Serial.print(yPower);Serial.print(":");Serial.println(joystick_y);
-#endif 
-    sprintf(sendData,"y%d",yPower);
-  } else if (fullStopFlag) {
+  if (fullStopFlag) {
      fullStopFlag=false;
      clearBuffer();
 #ifdef DEBUG_MODE    
@@ -127,9 +89,53 @@ void loop() {
 #endif
     sprintf(sendData, "s"); 
   } else {
-    return;
+    for (i = 0; i< NR_READS; i++)
+      readValue += analogRead(JOYSTICK_X_PIN);
+    readValue = readValue/NR_READS;
+    if (labs(readValue - joystick_x) > 2) {
+      joystick_x_old = joystick_x;
+      joystick_x = readValue;
+    }
+    if (labs(joystick_x_old - JOYSTICK_X_ZERO) <= 2 && labs(JOYSTICK_X_ZERO - joystick_x) <=2) {
+      joystick_x_old = joystick_x;
+    }
+    readValue = 0;
+    for (i = 0; i< NR_READS; i++)
+      readValue += analogRead(JOYSTICK_Y_PIN);
+    readValue = readValue/NR_READS;
+    if (labs(readValue - joystick_y) > 2) {
+      joystick_y_old = joystick_y;
+      joystick_y = readValue;
+    }
+    if (labs(joystick_x_old - joystick_x) > 2 && labs(joystick_y_old - joystick_y) > 2) {
+      xPower = normalize(JOYSTICK_X_ZERO-joystick_x);
+      yPower = normalize(-joystick_y+JOYSTICK_Y_ZERO);
+#ifdef DEBUG_MODE
+      Serial.print("x="); Serial.print(xPower);Serial.print(":y="); Serial.print(yPower);
+      Serial.print(" orig x=");Serial.print(joystick_x);Serial.print(":");Serial.println(joystick_x);
+#endif    
+      sprintf(sendData,"c%d,%d",xPower,yPower);
+    } else if (labs(joystick_x_old - joystick_x) > 2) {
+      xPower = normalize(JOYSTICK_X_ZERO-joystick_x);
+#ifdef DEBUG_MODE    
+      Serial.print("x="); Serial.print(xPower);Serial.print(":");Serial.println(joystick_x);
+#endif    
+      sprintf(sendData,"x%d",xPower);
+    } else if (labs(joystick_y_old - joystick_y) > 2) {
+      yPower = normalize(-joystick_y+JOYSTICK_Y_ZERO);
+#ifdef DEBUG_MODE
+      Serial.print("y="); Serial.print(yPower);Serial.print(":");Serial.println(joystick_y);
+#endif 
+      sprintf(sendData,"y%d",yPower);
+    } else {
+      return;
+    }
   }
-  vw_send((uint8_t *)sendData,strlen(sendData));
+#ifdef DEBUG_MODE
+  Serial.print("Send to droid=");
+  Serial.println((char *)sendData);
+#endif  
+  vw_send((uint8_t *)sendData,strlen(sendData) + 1);
   vw_wait_tx();
   joystick_x_old = joystick_x;
   joystick_y_old = joystick_y;

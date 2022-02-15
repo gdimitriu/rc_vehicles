@@ -13,6 +13,6 @@ This will be controled using
 
 The controler from fs1000a is used to controll the car.
 
-![fs100a](https://www.componentsinfo.com/fs1000a-433mhz-rf-transmitter-xy-mk-5v-receiver-module-explanation-pinout/)
+[fs100a](https://www.componentsinfo.com/fs1000a-433mhz-rf-transmitter-xy-mk-5v-receiver-module-explanation-pinout/)
 
 The joystick use the transmitter and the car hold the receiver (is one way communication).

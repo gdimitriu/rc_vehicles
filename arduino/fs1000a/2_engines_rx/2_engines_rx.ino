@@ -1,6 +1,6 @@
 /*
  * Radio Controlled car.
- * Copyright 2022 Gabriel Dimitriu
+ * Copyright 2018 Gabriel Dimitriu
  *
  * This is part of rc_vehicles project.
  * Two engine controlled by radio using joystick the receiver part.
@@ -47,7 +47,11 @@ void setup() {
   pinMode(LEFT_MOTOR_PIN2, OUTPUT);
   pinMode(RIGHT_MOTOR_PIN1, OUTPUT);
   pinMode(RIGHT_MOTOR_PIN2, OUTPUT);
-  go(0,0);
+  pinMode(PIN_RX,INPUT_PULLUP);
+  digitalWrite(LEFT_MOTOR_PIN1,LOW);
+  digitalWrite(LEFT_MOTOR_PIN2,LOW);
+  digitalWrite(RIGHT_MOTOR_PIN1,LOW);
+  digitalWrite(RIGHT_MOTOR_PIN2,LOW);
   vw_rx_start();
 }
 
@@ -103,6 +107,7 @@ void moveX() {
      inData[i]=inData[i+1];
   }
   power = atoi(inData);
+  power = normalizePower(power);
 #ifdef DEBUG_MODE    
   Serial.print("Move linear with power ");Serial.println(power);
 #endif
@@ -115,6 +120,7 @@ void moveY() {
      inData[i]=inData[i+1];
   }
   power = atoi(inData);
+  power = normalizePower(power);
 #ifdef DEBUG_MODE
   Serial.print("Turn on spot with power ");Serial.println(power);
 #endif
@@ -125,12 +131,14 @@ void moveY() {
   }
 }
 
-int normalizeLower(int power) {
-  if (power < -MINIMUM_POWER) {
-      return  -MINIMUM_POWER;
-  } else if (power > 0 && power < MINIMUM_POWER) {
+int normalizePower(int power) {
+  if ((power < 20 && power >= 0) || (power <= 0 && power > -20))
+    return 0;
+  if (power > 0 && power < MINIMUM_POWER) {
       return  MINIMUM_POWER;
-  } else  {
+  } else if (power < 0 && power > -MINIMUM_POWER) {
+      return  -MINIMUM_POWER;
+  } else {
     return power;
   }
 }
@@ -162,9 +170,9 @@ void moveWithTurn() {
     if (powerX > 0 ) {
       //move forward
 #ifdef DEBUG_MODE
-  Serial.print("Move forward right : left=");Serial.print(powerX);Serial.print(" right=");Serial.println(normalizeLower(labs(powerX-powerY/2)));
+  Serial.print("Move forward right : left=");Serial.print(powerX);Serial.print(" right=");Serial.println(normalizePower(labs(powerX-powerY/2)));
 #endif      
-     go(powerX,normalizeLower(labs(powerX-powerY/2)));
+     go(powerX,normalizePower(labs(powerX-powerY/2)));
     } else {
       
     }
@@ -173,15 +181,15 @@ void moveWithTurn() {
     if (powerX > 0) {
       //move forward
 #ifdef DEBUG_MODE
-  Serial.print("Move forward left : left=");Serial.print(normalizeLower(labs(powerX+powerY/2)));Serial.print(" right=");Serial.println(powerX);
+  Serial.print("Move forward left : left=");Serial.print(normalizePower(labs(powerX+powerY/2)));Serial.print(" right=");Serial.println(powerX);
 #endif      
-     go(normalizeLower(labs(powerX+powerY/2)),powerX);
+     go(normalizePower(labs(powerX+powerY/2)),powerX);
     } else {
       
     }
   }
 }
-
+uint8_t badMessages_old = 0;
 void loop() {
   uint8_t bufLen = BUFFER;
   for(int i = 0; i < BUFFER; i++) {
@@ -189,24 +197,30 @@ void loop() {
     xData[i]='\0';
     yData[i]='\0';
   }
-  if(!vw_get_message(inData,&bufLen)) {
-    return;
-  }
+  if(vw_get_message(inData,&bufLen)) {
 #ifdef DEBUG_MODE
-  Serial.println(inData);
+    Serial.println(inData);
 #endif
-  if (strcmp(inData,"s") == 0) {
+    if (strcmp(inData,"s") == 0) {
 #ifdef DEBUG_MODE    
-    Serial.println("stop");
+      Serial.println("stop");
 #endif
-    go(0,0);
-  } else if (strlen(inData) > 1) {
-    if (inData[0] == 'x') {
-      moveX();
-    } else if (inData[0] == 'y') {
-      moveY();
-    } else if (inData[0] == 'c') {
-      moveWithTurn();
+      go(0,0);
+    } else if (strlen(inData) > 1) {
+      if (inData[0] == 'x') {
+        moveX();
+      } else if (inData[0] == 'y') {
+        moveY();
+      } else if (inData[0] == 'c') {
+        moveWithTurn();
+      }
+    }
+  } else {
+    uint8_t badMessages = vw_get_rx_bad();
+    if ((badMessages -badMessages_old) > 0) {
+      Serial.print("Bad Message count=");
+      Serial.println(badMessages);
+      badMessages_old = badMessages;
     }
   }
 }
