@@ -34,6 +34,7 @@
 #define BLE_BUFFER 40
 
 int maxPower = 255;
+int currentPower = maxPower;
 int minPower = 100;
 //for communication
 bool isValidInput;
@@ -156,7 +157,14 @@ void makeMove() {
       sprintf(buffer,"%d\r\n",minPower);
       BTSerial.print(buffer);
       BTSerial.flush();
-    } else if (inData[0] == 'd') {
+    } else if (inData[0] =='c') {
+#ifdef SERIAL_DEBUG_MODE
+      Serial.println(currentPower);
+#endif      
+      sprintf(buffer,"%d\r\n",currentPower);
+      BTSerial.print(buffer);
+      BTSerial.flush();
+    }  else if (inData[0] == 'd') {
 #ifdef SERIAL_DEBUG_MODE
       Serial.println("unsupported");
 #endif
@@ -198,7 +206,7 @@ void makeMove() {
           makeCleanup();
           return false;
         }
-        if (atol(inData) > 255 || atol(inData) < 0) {
+        if (atol(inData) > maxPower || atol(inData) < 0) {
           isValidInput = false;
           makeCleanup();
           return false;
@@ -223,7 +231,7 @@ void makeMove() {
           makeCleanup();
           return false;
         }
-        if (atol(inData) > 255 || atol(inData) < 0) {
+        if (atol(inData) > maxPower || atol(inData) < 0) {
           isValidInput = false;
           makeCleanup();
           return false;
@@ -232,6 +240,31 @@ void makeMove() {
         Serial.print("MinPower=");Serial.println(inData);
 #endif                
         minPower = atol(inData);
+        makeCleanup();
+        isValidInput = true;
+        return true;
+      } else if (inData[0] == 'c') {
+        sprintf(buffer,"OK\r\n");
+        BTSerial.print(buffer);
+        BTSerial.flush();
+        //remove c from command
+        for (uint8_t i = 0 ; i < strlen(inData); i++) {
+          inData[i]=inData[i+1];
+        }
+        if (!isValidNumber(inData, index - 2)) {
+          isValidInput = false;
+          makeCleanup();
+          return false;
+        }
+        if (atol(inData) > maxPower || atol(inData) < 0) {
+          isValidInput = false;
+          makeCleanup();
+          return false;
+        }
+#ifdef SERIAL_DEBUG_MODE
+        Serial.print("CurrentPower=");Serial.println(inData);
+#endif                
+        currentPower = atol(inData);
         makeCleanup();
         isValidInput = true;
         return true;
@@ -295,15 +328,15 @@ void makeMove() {
           go(0,0);
         } else if (rotateData == 0) {
           if (moveData < 0) {
-            go(-maxPower,-maxPower);
+            go(-currentPower,-currentPower);
           } else {
-            go(maxPower, maxPower);
+            go(currentPower, currentPower);
           }
         } else {
           if (rotateData < 0) {
-            go(-maxPower,maxPower);
+            go(-currentPower,currentPower);
           } else {
-            go(maxPower, -maxPower);
+            go(currentPower, -currentPower);
           }
         }
         makeCleanup();
@@ -340,10 +373,19 @@ void loop()
  }
  if (index >= 1) {
   if (inData[index - 1] == '#') {
+#ifdef SERIAL_DEBUG_MODE
+    Serial.print(inData);
+#endif
     makeMove();
   } else if (cleanupBT) {
     makeCleanup();
     cleanupBT = false;
+  } else {
+#ifdef SERIAL_DEBUG_MODE
+    Serial.print("Index=");Serial.print(index);
+    Serial.print(inData);
+#endif
+    delay(10);
   }
  }
 }
