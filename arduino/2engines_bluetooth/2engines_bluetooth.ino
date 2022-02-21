@@ -206,7 +206,7 @@ void makeMove() {
           makeCleanup();
           return false;
         }
-        if (atol(inData) > maxPower || atol(inData) < 0) {
+        if (atol(inData) > 255 || atol(inData) < 0) {
           isValidInput = false;
           makeCleanup();
           return false;
@@ -363,9 +363,12 @@ void loop()
         inChar = BTSerial.read(); // Read a character
         if (inChar=='\r' || inChar=='\n') {
           continue;
-        }
+        }        
         inData[index++] = inChar; // Store it
         inData[index] = '\0'; // Null terminate the string
+        if (inChar == '#') {
+          break;
+        }
      } else {
         makeCleanup();
         cleanupBT = true;
@@ -381,10 +384,6 @@ void loop()
     makeCleanup();
     cleanupBT = false;
   } else {
-#ifdef SERIAL_DEBUG_MODE
-    Serial.print("Index=");Serial.print(index);
-    Serial.print(inData);
-#endif
     delay(10);
   }
  }
