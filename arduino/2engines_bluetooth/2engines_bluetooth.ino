@@ -32,8 +32,8 @@
 
 //#define SERIAL_DEBUG_MODE true
 #define BLE_BUFFER 40
-
-int maxPower = 255;
+#define ABSOLUTE_MAX_POWER 255
+int maxPower = ABSOLUTE_MAX_POWER;
 int currentPower = maxPower;
 int minPower = 100;
 //for communication
@@ -206,7 +206,7 @@ void makeMove() {
           makeCleanup();
           return false;
         }
-        if (atol(inData) > 255 || atol(inData) < 0) {
+        if (atol(inData) > ABSOLUTE_MAX_POWER || atol(inData) < 0) {
           isValidInput = false;
           makeCleanup();
           return false;
