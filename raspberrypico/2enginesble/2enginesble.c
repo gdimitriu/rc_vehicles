@@ -74,13 +74,11 @@ void go(int speedLeft, int speedRight) {
 	if (speedLeft > 0) {
 		pwm_set_gpio_level(LEFT_MOTOR_PIN1, speedLeft);
 		pwm_set_gpio_level(LEFT_MOTOR_PIN2, 0);
-//		gpio_put(LEFT_MOTOR_PIN2,LOW);
 #ifdef SERIAL_DEBUG_MODE
 		printf("Left %d,0\n",speedLeft);
 #endif
 	} 
 	else {
-//		gpio_put(LEFT_MOTOR_PIN1,LOW);
 		pwm_set_gpio_level(LEFT_MOTOR_PIN1, 0);
 		pwm_set_gpio_level(LEFT_MOTOR_PIN2, -speedLeft);
 #ifdef SERIAL_DEBUG_MODE
@@ -91,12 +89,10 @@ void go(int speedLeft, int speedRight) {
 	if (speedRight > 0) {
 		pwm_set_gpio_level(RIGHT_MOTOR_PIN1, speedRight);
 		pwm_set_gpio_level(RIGHT_MOTOR_PIN2, 0);
-//		gpio_put(RIGHT_MOTOR_PIN2,LOW);
 #ifdef SERIAL_DEBUG_MODE
 		printf("Right %d,0\n",speedRight);
 #endif
 	}else {
-//		gpio_put(RIGHT_MOTOR_PIN1,LOW);
 		pwm_set_gpio_level(RIGHT_MOTOR_PIN2, 0);		
 		pwm_set_gpio_level(RIGHT_MOTOR_PIN2, -speedRight);
 #ifdef SERIAL_DEBUG_MODE
@@ -326,8 +322,6 @@ int main() {
 	gpio_set_function(4, GPIO_FUNC_UART);
 	gpio_set_function(5, GPIO_FUNC_UART);
 	uart_set_translate_crlf(uart1, 1);
-//	gpio_init(LEFT_MOTOR_PIN1);	
-//	gpio_set_dir(LEFT_MOTOR_PIN1, GPIO_OUT);
 	gpio_set_function(LEFT_MOTOR_PIN1, GPIO_FUNC_PWM);
 	// Figure out which slice we just connected to the LED pin
     uint slice_num = pwm_gpio_to_slice_num(LEFT_MOTOR_PIN1);
@@ -336,8 +330,6 @@ int main() {
     pwm_config_set_clkdiv(&config, 4.f);
     // Load the configuration into our PWM slice, and set it running.
     pwm_init(slice_num, &config, true);
-//	gpio_init(LEFT_MOTOR_PIN2);
-//	gpio_set_dir(LEFT_MOTOR_PIN2, GPIO_OUT);
 	gpio_set_function(LEFT_MOTOR_PIN2, GPIO_FUNC_PWM);
 	slice_num = pwm_gpio_to_slice_num(LEFT_MOTOR_PIN2);
 	config = pwm_get_default_config();
@@ -345,8 +337,6 @@ int main() {
     pwm_config_set_clkdiv(&config, 4.f);
     // Load the configuration into our PWM slice, and set it running.
     pwm_init(slice_num, &config, true);	
-//	gpio_init(RIGHT_MOTOR_PIN1);
-//	gpio_set_dir(RIGHT_MOTOR_PIN1, GPIO_OUT);
 	gpio_set_function(RIGHT_MOTOR_PIN1, GPIO_FUNC_PWM);	
 	slice_num = pwm_gpio_to_slice_num(RIGHT_MOTOR_PIN1);
 	config = pwm_get_default_config();
@@ -354,8 +344,6 @@ int main() {
     pwm_config_set_clkdiv(&config, 4.f);
     // Load the configuration into our PWM slice, and set it running.
     pwm_init(slice_num, &config, true);	
-//	gpio_init(RIGHT_MOTOR_PIN2);
-//	gpio_set_dir(RIGHT_MOTOR_PIN2, GPIO_OUT);
 	gpio_set_function(RIGHT_MOTOR_PIN2, GPIO_FUNC_PWM);
 	slice_num = pwm_gpio_to_slice_num(RIGHT_MOTOR_PIN2);
 	config = pwm_get_default_config();
