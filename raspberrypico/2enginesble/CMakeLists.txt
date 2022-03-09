@@ -14,7 +14,7 @@ if (TARGET tinyusb_device)
         )
 
 	# Pull in our pico_stdlib which pulls in commonly used features
-	target_link_libraries(2enginesble pico_stdlib)
+	target_link_libraries(2enginesble pico_stdlib  hardware_pwm)
 
 	# enable usb output, disable uart output
     pico_enable_stdio_usb(2enginesble 1)

@@ -8,16 +8,23 @@
 #include <stdlib.h>
 #include <pico/stdlib.h>
 #include <hardware/uart.h>
+#include <hardware/pwm.h>
 #include <string.h>
 
 #define SERIAL_DEBUG_MODE true
 #define BLE_BUFFER 256
 #define BLE_BUFFER_SEND 512
-#define ABSOLUTE_MAX_POWER 255
+#define ABSOLUTE_MAX_POWER 65025
+#define LEFT_MOTOR_PIN1 15
+#define LEFT_MOTOR_PIN2 14
+#define RIGHT_MOTOR_PIN1 11
+#define RIGHT_MOTOR_PIN2 10
+#define HIGH 1
+#define LOW 0
 int bufferIndex = 0;
 int maxPower = ABSOLUTE_MAX_POWER;
 int currentPower = ABSOLUTE_MAX_POWER;
-int minPower = 100;
+int minPower = 30000;
 char inChar = '\0';
 char bufferReceive[BLE_BUFFER];
 char bufferSend[BLE_BUFFER_SEND];
@@ -27,6 +34,10 @@ bool isValidNumber(char *data, int size)
 {
 	if (size == 0 )
 		return false;
+	for (int i =0 ;i < size; i++) {
+		if (!(data[i] < 58 && data[i] > 47 ))
+			return false;
+	}
 	return true;
 }
 
@@ -40,14 +51,58 @@ void makeCleanup() {
 }
 
 void breakEngines() {
-	
+	pwm_set_gpio_level(LEFT_MOTOR_PIN1,ABSOLUTE_MAX_POWER);
+    pwm_set_gpio_level(LEFT_MOTOR_PIN2,ABSOLUTE_MAX_POWER);
+    pwm_set_gpio_level(RIGHT_MOTOR_PIN1,ABSOLUTE_MAX_POWER);
+    pwm_set_gpio_level(RIGHT_MOTOR_PIN2,ABSOLUTE_MAX_POWER);
 }
 
 /*
 * Move the platform in predefined directions.
 */
 void go(int speedLeft, int speedRight) {
-	
+	if (speedLeft == 0 && speedRight == 0 ) {
+		pwm_set_gpio_level(LEFT_MOTOR_PIN1,LOW);
+		pwm_set_gpio_level(LEFT_MOTOR_PIN2,LOW);
+		pwm_set_gpio_level(RIGHT_MOTOR_PIN1,LOW);
+		pwm_set_gpio_level(RIGHT_MOTOR_PIN2,LOW);
+#ifdef SERIAL_DEBUG_MODE    
+		printf("All on zero\n");
+#endif
+		return;
+	}
+	if (speedLeft > 0) {
+		pwm_set_gpio_level(LEFT_MOTOR_PIN1, speedLeft);
+		pwm_set_gpio_level(LEFT_MOTOR_PIN2, 0);
+//		gpio_put(LEFT_MOTOR_PIN2,LOW);
+#ifdef SERIAL_DEBUG_MODE
+		printf("Left %d,0\n",speedLeft);
+#endif
+	} 
+	else {
+//		gpio_put(LEFT_MOTOR_PIN1,LOW);
+		pwm_set_gpio_level(LEFT_MOTOR_PIN1, 0);
+		pwm_set_gpio_level(LEFT_MOTOR_PIN2, -speedLeft);
+#ifdef SERIAL_DEBUG_MODE
+		printf("Left 0,%d\n",-speedLeft);
+#endif
+	}
+ 
+	if (speedRight > 0) {
+		pwm_set_gpio_level(RIGHT_MOTOR_PIN1, speedRight);
+		pwm_set_gpio_level(RIGHT_MOTOR_PIN2, 0);
+//		gpio_put(RIGHT_MOTOR_PIN2,LOW);
+#ifdef SERIAL_DEBUG_MODE
+		printf("Right %d,0\n",speedRight);
+#endif
+	}else {
+//		gpio_put(RIGHT_MOTOR_PIN1,LOW);
+		pwm_set_gpio_level(RIGHT_MOTOR_PIN2, 0);		
+		pwm_set_gpio_level(RIGHT_MOTOR_PIN2, -speedRight);
+#ifdef SERIAL_DEBUG_MODE
+		printf("Right 0,%d\n",-speedRight);
+#endif
+	}
 }
 
 bool makeMove() {
@@ -271,6 +326,43 @@ int main() {
 	gpio_set_function(4, GPIO_FUNC_UART);
 	gpio_set_function(5, GPIO_FUNC_UART);
 	uart_set_translate_crlf(uart1, 1);
+//	gpio_init(LEFT_MOTOR_PIN1);	
+//	gpio_set_dir(LEFT_MOTOR_PIN1, GPIO_OUT);
+	gpio_set_function(LEFT_MOTOR_PIN1, GPIO_FUNC_PWM);
+	// Figure out which slice we just connected to the LED pin
+    uint slice_num = pwm_gpio_to_slice_num(LEFT_MOTOR_PIN1);
+    pwm_config config = pwm_get_default_config();
+    // Set divider, reduces counter clock to sysclock/this value
+    pwm_config_set_clkdiv(&config, 4.f);
+    // Load the configuration into our PWM slice, and set it running.
+    pwm_init(slice_num, &config, true);
+//	gpio_init(LEFT_MOTOR_PIN2);
+//	gpio_set_dir(LEFT_MOTOR_PIN2, GPIO_OUT);
+	gpio_set_function(LEFT_MOTOR_PIN2, GPIO_FUNC_PWM);
+	slice_num = pwm_gpio_to_slice_num(LEFT_MOTOR_PIN2);
+	config = pwm_get_default_config();
+    // Set divider, reduces counter clock to sysclock/this value
+    pwm_config_set_clkdiv(&config, 4.f);
+    // Load the configuration into our PWM slice, and set it running.
+    pwm_init(slice_num, &config, true);	
+//	gpio_init(RIGHT_MOTOR_PIN1);
+//	gpio_set_dir(RIGHT_MOTOR_PIN1, GPIO_OUT);
+	gpio_set_function(RIGHT_MOTOR_PIN1, GPIO_FUNC_PWM);	
+	slice_num = pwm_gpio_to_slice_num(RIGHT_MOTOR_PIN1);
+	config = pwm_get_default_config();
+    // Set divider, reduces counter clock to sysclock/this value
+    pwm_config_set_clkdiv(&config, 4.f);
+    // Load the configuration into our PWM slice, and set it running.
+    pwm_init(slice_num, &config, true);	
+//	gpio_init(RIGHT_MOTOR_PIN2);
+//	gpio_set_dir(RIGHT_MOTOR_PIN2, GPIO_OUT);
+	gpio_set_function(RIGHT_MOTOR_PIN2, GPIO_FUNC_PWM);
+	slice_num = pwm_gpio_to_slice_num(RIGHT_MOTOR_PIN2);
+	config = pwm_get_default_config();
+    // Set divider, reduces counter clock to sysclock/this value
+    pwm_config_set_clkdiv(&config, 4.f);
+    // Load the configuration into our PWM slice, and set it running.
+    pwm_init(slice_num, &config, true);	
 	makeCleanup();
 	while (1) {
 		if (uart_is_readable(uart1)) {
