@@ -355,7 +355,12 @@ int main() {
 	while (1) {
 		if (uart_is_readable(uart1)) {
 			inChar = uart_getc(uart1);
+			//commands does not have terminators
 			if(inChar == '\n' || inChar == '\r' || inChar == ' ' || inChar == '\t' || inChar == '\0') {
+				continue;
+			}
+			//commands start with a letter capital or small
+			if (bufferIndex == 0 && !((inChar >64 && inChar <91) || (inChar > 96 && inChar<123))) {
 				continue;
 			}
 			bufferReceive[bufferIndex] = inChar;
