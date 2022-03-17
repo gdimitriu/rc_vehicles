@@ -106,7 +106,11 @@ bool makeMove() {
      bufferReceive[bufferIndex] = '\0';
   }
   if (strlen(bufferReceive) == 1) {
-    if (bufferReceive[0] == 'V') {      
+	if (bufferReceive[0] == 'I')  {
+		memset(bufferSend,'\0',sizeof(char)*BLE_BUFFER_SEND);
+		sprintf(bufferSend,"unsupported\r\n");
+		uart_puts(uart1,bufferSend);		
+	} else if (bufferReceive[0] == 'V') {      
 #ifdef SERIAL_DEBUG_MODE
 		printf("%d\n\r",maxPower);
 #endif
