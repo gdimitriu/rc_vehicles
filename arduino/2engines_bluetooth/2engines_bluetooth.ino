@@ -143,7 +143,11 @@ void makeMove() {
      inData[index-1] = '\0';
   }
   if (strlen(inData) == 1) {
-    if (inData[0] == 'V') {      
+    if (inData[0] == 'I') {
+      sprintf(buffer,"unsupported\r\n");
+      BTSerial.print(buffer);
+      BTSerial.flush();
+    } else if (inData[0] == 'V') {      
 #ifdef SERIAL_DEBUG_MODE
       Serial.println(maxPower);
 #endif
