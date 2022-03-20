@@ -9,4 +9,4 @@ Vehicles that are controled by fs1000a should use the controller using arduino.
 
 ## Raspberry Pi Pico
 
-![Raspberry Pi Pico](raspberrpico/README.md)
+![Raspberry Pi Pico](raspberrypico/README.md)
