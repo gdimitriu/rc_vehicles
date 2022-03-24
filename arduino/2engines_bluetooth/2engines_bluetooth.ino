@@ -365,9 +365,13 @@ void loop()
      if(index < 19) // One less than the size of the array
      {
         inChar = BTSerial.read(); // Read a character
-        if (inChar=='\r' || inChar=='\n') {
+        if (inChar=='\r' || inChar=='\n' || inChar =='\0' || inChar < 35 || inChar > 122) {
           continue;
-        }        
+        }
+        //commands start with a letter capital or small
+        if (bufferIndex == 0 && !((inChar >64 && inChar <91) || (inChar > 96 && inChar<123))) {
+          continue;
+        }    
         inData[index++] = inChar; // Store it
         inData[index] = '\0'; // Null terminate the string
         if (inChar == '#') {

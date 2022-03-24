@@ -321,13 +321,16 @@ int main() {
 	stdio_usb_init();
 	//initialize UART 1
 	uart_init(uart1, 38400);
-
 	// Set the GPIO pin mux to the UART - 4 is TX, 5 is RX
 	gpio_set_function(4, GPIO_FUNC_UART);
 	gpio_set_function(5, GPIO_FUNC_UART);
 	uart_set_translate_crlf(uart1, 1);
+#ifdef SERIAL_DEBUG_MODE
+	printf("Starting...\n");
+	fflush(stdout);
+#endif
 	gpio_set_function(LEFT_MOTOR_PIN1, GPIO_FUNC_PWM);
-	// Figure out which slice we just connected to the LED pin
+	// Figure out which slice we just connected
     uint slice_num = pwm_gpio_to_slice_num(LEFT_MOTOR_PIN1);
     pwm_config config = pwm_get_default_config();
     // Set divider, reduces counter clock to sysclock/this value
@@ -356,11 +359,15 @@ int main() {
     // Load the configuration into our PWM slice, and set it running.
     pwm_init(slice_num, &config, true);	
 	makeCleanup();
+#ifdef SERIAL_DEBUG_MODE	
+	printf("Started\n");
+	fflush(stdout);
+#endif	
 	while (1) {
 		if (uart_is_readable(uart1)) {
 			inChar = uart_getc(uart1);
 			//commands does not have terminators
-			if(inChar == '\n' || inChar == '\r' || inChar == ' ' || inChar == '\t' || inChar == '\0') {
+			if(inChar == '\n' || inChar == '\r' || inChar == ' ' || inChar == '\t' || inChar == '\0' || inChar < 35 || inChar > 122) {
 				continue;
 			}
 			//commands start with a letter capital or small
@@ -374,7 +381,7 @@ int main() {
 					return 1 ;
 				}
 #ifdef SERIAL_DEBUG_MODE				
-				printf("%s\n", bufferReceive);
+				printf("<<%s>>index=%d\n", bufferReceive,bufferIndex);
 #endif			
 				makeMove();
 				makeCleanup();

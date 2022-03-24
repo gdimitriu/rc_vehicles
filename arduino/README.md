@@ -3,13 +3,17 @@
 ## CAR with BLE/WIFI
 This will be controled using 
 
-![Android application](https://github.com/gdimitriu/DroidControlCenter)
+[Android application](https://github.com/gdimitriu/DroidControlCenter)
+
+Power lines and signal connections for BLE:
 
 ![The logical connection](./docs/logical_connections.jpg)
 
 ![The power connection](./docs/power_lines.jpg)
 
-## CAR with FS1000A
+The 2engines_bluetooth could be used with WIFI ESP-01 programmed with ESP01ToSerialAP.
+
+## CAR with FS1000A (still in dev)
 
 The controler from fs1000a is used to controll the car.
 
