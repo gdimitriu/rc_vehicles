@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
  */
 #include <NeoSWSerial.h>
-#include <PinChangeInt.h>
+#include <EnableInterrupt.h>
 
 #define RxD 2
 #define TxD 3
@@ -58,7 +58,7 @@ void setup() {
   pinMode(LEFT_MOTOR_PIN2, OUTPUT);
   pinMode(RIGHT_MOTOR_PIN1, OUTPUT);
   pinMode(RIGHT_MOTOR_PIN2, OUTPUT);
-  attachPinChangeInterrupt(RxD, neoSSerial1ISR, CHANGE);
+  enableInterrupt(RxD, neoSSerial1ISR, CHANGE);
   cleanupBT = false;
 #ifdef SERIAL_DEBUG_MODE
   Serial.println("Starting...");
@@ -369,7 +369,7 @@ void loop()
           continue;
         }
         //commands start with a letter capital or small
-        if (bufferIndex == 0 && !((inChar >64 && inChar <91) || (inChar > 96 && inChar<123))) {
+        if (index == 0 && !((inChar >64 && inChar <91) || (inChar > 96 && inChar<123))) {
           continue;
         }    
         inData[index++] = inChar; // Store it
